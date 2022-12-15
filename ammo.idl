@@ -380,6 +380,11 @@ interface btVector3Array {
   [Const, Ref] btVector3 at(long n);
 };
 
+interface btMatrix3x3Array {
+  long size();
+  [Const, Ref] btMatrix3x3 at(long n);
+};
+
 interface btFaceArray {
   long size();
   [Const, Ref] btFace at(long n);
@@ -742,6 +747,39 @@ interface btRigidBody {
 };
 btRigidBody implements btCollisionObject;
 
+interface btSolverBody {
+	[Value] attribute btTransform		m_worldTransform;
+	[Value] attribute btVector3		m_deltaLinearVelocity;
+	[Value] attribute btVector3		m_deltaAngularVelocity;
+	[Value] attribute btVector3		m_angularFactor;
+	[Value] attribute btVector3		m_linearFactor;
+	[Value] attribute btVector3		m_invMass;
+	[Value] attribute btVector3		m_pushVelocity;
+	[Value] attribute btVector3		m_turnVelocity;
+	[Value] attribute btVector3		m_linearVelocity;
+	[Value] attribute btVector3		m_angularVelocity;
+	[Value] attribute btVector3		m_externalForceImpulse;
+	[Value] attribute btVector3		m_externalTorqueImpulse;
+	attribute btRigidBody	        m_originalBody;
+	void	setWorldTransform([Const, Ref] btTransform worldTransform);
+	[Const, Ref] btTransform getWorldTransform();
+	void getVelocityInLocalPointNoDelta([Const, Ref] btVector3 rel_pos, [Ref] btVector3 velocity);
+	void getVelocityInLocalPointObsolete([Const, Ref] btVector3 rel_pos, [Ref] btVector3 velocity);
+	void getAngularVelocity([Ref] btVector3 angVel);
+	//Optimization for the iterative solver: avoid calculating constant terms involving inertia, normal, relative position
+	void applyImpulse([Const, Ref] btVector3 linearComponent, [Const, Ref] btVector3 angularComponent, [Const] float impulseMagnitude);
+	void internalApplyPushImpulse([Const, Ref] btVector3 linearComponent, [Const, Ref] btVector3 angularComponent, float impulseMagnitude);
+	[Const, Ref] btVector3 getDeltaLinearVelocity();
+	[Const, Ref] btVector3 getDeltaAngularVelocity();
+	[Const, Ref] btVector3 getPushVelocity();
+	[Const, Ref] btVector3 getTurnVelocity();
+};
+
+interface btSolverBodyArray {
+  long size();
+  [Const, Ref] btSolverBody at(long n);
+};
+
 interface btConstraintSetting {
   void btConstraintSetting();
   attribute float m_tau;
@@ -859,6 +897,11 @@ interface btFixedConstraint {
   void btFixedConstraint([Ref] btRigidBody rbA, [Ref] btRigidBody rbB, [Const,Ref] btTransform frameInA, [Const,Ref] btTransform frameInB);
 };
 btFixedConstraint implements btTypedConstraint;
+
+enum btConstraintSolverType {
+	"BT_SEQUENTIAL_IMPULSE_SOLVER",
+	"BT_MLCP_SOLVER"
+};
 
 interface btConstraintSolver {
 };
@@ -1094,6 +1137,407 @@ interface btGhostPairCallback {
   void btGhostPairCallback();
 };
 
+interface btMultibodyLink {
+  attribute float joint_pos;    // qi
+
+  attribute float mass;         // mass of link
+  [Value] attribute btVector3 inertia;   // inertia of link (local frame; diagonal)
+
+  attribute long parent;         // index of the parent link (assumed to be < index of this link), or -1 if parent is the base link.
+
+  [Value] attribute btQuaternion zero_rot_parent_to_this;    // rotates vectors in parent-frame to vectors in local-frame (when q=0). constant.
+
+  // "axis" = spatial joint axis (Mirtich Defn 9 p104). (expressed in local frame.) constant.
+  // for prismatic: axis_top = zero;
+  //                axis_bottom = unit vector along the joint axis.
+  // for revolute: axis_top = unit vector along the rotation axis (u);
+  //               axis_bottom = u cross d_vector.
+  [Value] attribute btVector3 axis_top;
+  [Value] attribute btVector3 axis_bottom;
+  [Value] attribute btVector3 d_vector;   // vector from the inboard joint pos to this link's COM. (local frame.) constant. set for revolute joints only.
+
+  // e_vector is constant, but depends on the joint type
+  // prismatic: vector from COM of parent to COM of this link, WHEN Q = 0. (local frame.)
+  // revolute: vector from parent's COM to the pivot point, in PARENT's frame.
+  [Value] attribute btVector3 e_vector;
+
+  attribute boolean is_revolute;   // true = revolute, false = prismatic
+
+  [Value] attribute btQuaternion cached_rot_parent_to_this;   // rotates vectors in parent frame to vectors in local frame
+  [Value] attribute btVector3 cached_r_vector;                // vector from COM of parent to COM of this link, in local frame.
+
+  [Value] attribute btVector3 applied_force;    // In WORLD frame
+  [Value] attribute btVector3 applied_torque;   // In WORLD frame
+  attribute float joint_torque;
+
+	attribute btMultiBodyLinkCollider m_collider;
+	attribute long m_flags;
+
+  // ctor: set some sensible defaults
+	void btMultibodyLink();
+};
+
+interface btMultiBodyLinkCollider {
+	attribute btMultiBody m_multiBody;
+	attribute long m_link;
+
+	void btMultiBodyLinkCollider(btMultiBody multiBody, long link);
+  
+	boolean checkCollideWithOverride([Const] btCollisionObject co);
+};
+
+interface btMultiBody {
+  void btMultiBody(long n_links,                // NOT including the base
+              float mass,                // mass of base
+              [Const, Ref] btVector3 inertia,    // inertia of base, in base frame; assumed diagonal
+              boolean fixed_base_,           // whether the base is fixed (true) or can move (false)
+              boolean can_sleep_);
+  
+  void setupPrismatic(long i,             // 0 to num_links-1
+                      float mass,
+                      [Const, Ref] btVector3 inertia,       // in my frame; assumed diagonal
+                      long parent,
+                      [Const, Ref] btQuaternion rot_parent_to_this,  // rotate points in parent frame to my frame.
+                      [Const, Ref] btVector3 joint_axis,             // in my frame
+                      [Const, Ref] btVector3 r_vector_when_q_zero,  // vector from parent COM to my COM, in my frame, when q = 0.
+                      boolean disableParentCollision);
+
+  void setupRevolute(long i,            // 0 to num_links-1
+                      float mass,
+                      [Const, Ref] btVector3 inertia,
+                      long parent,
+                      [Const, Ref] btQuaternion zero_rot_parent_to_this,  // rotate points in parent frame to this frame, when q = 0
+                      [Const, Ref] btVector3 joint_axis,    // in my frame
+                      [Const, Ref] btVector3 parent_axis_position,    // vector from parent COM to joint axis, in PARENT frame
+                      [Const, Ref] btVector3 my_axis_position,       // vector from joint axis to my COM, in MY frame
+                      boolean disableParentCollision);
+	
+	[Const, Ref] btMultibodyLink getLink(long index);
+	// [Ref] btMultibodyLink getLink(long index);
+
+  //collider can be NULL to disable collision for the base
+	void setBaseCollider(btMultiBodyLinkCollider collider);
+	// [Const] btMultiBodyLinkCollider getBaseCollider();
+	btMultiBodyLinkCollider getBaseCollider();
+
+  //
+  // get parent
+  // input: link num from 0 to num_links-1
+  // output: link num from 0 to num_links-1, OR -1 to mean the base.
+  //
+  long getParent(long link_num);
+  
+  //
+  // get number of links, masses, moments of inertia
+  //
+
+  long getNumLinks();
+  float getBaseMass();
+  [Const, Ref] btVector3 getBaseInertia();
+  float getLinkMass(long i);
+  [Const, Ref] btVector3 getLinkInertia(long i);
+  
+
+  //
+  // change mass (incomplete: can only change base mass and inertia at present)
+  //
+
+  void setBaseMass(float mass);
+  void setBaseInertia([Const, Ref] btVector3 inertia);
+
+
+  //
+  // get/set pos/vel/rot/omega for the base link
+  //
+
+  [Const, Ref] btVector3 getBasePos();
+  [Const, Value] btVector3 getBaseVel();
+  [Const, Ref] btQuaternion getWorldToBaseRot();
+  [Value] btVector3 getBaseOmega();
+
+  void setBasePos([Const, Ref] btVector3 pos);
+  void setBaseVel([Const, Ref] btVector3 vel);
+  void setWorldToBaseRot([Const, Ref] btQuaternion rot);
+  void setBaseOmega([Const, Ref] btVector3 omega);
+
+  //
+  // get/set pos/vel for child links (i = 0 to num_links-1)
+  //
+
+  float getJointPos(long i);
+  float getJointVel(long i);
+
+  void setJointPos(long i, float q);
+  void setJointVel(long i, float qdot);
+
+  //
+  // direct access to velocities as a vector of 6 + num_links elements.
+  // (omega first, then v, then joint velocities.)
+  //
+  // [Const] float* getVelocityVector();
+
+  [Const, Ref] btVector3 getRVector(long i);   // vector from COM(parent(i)) to COM(i), in frame i's coords
+  [Const, Ref] btQuaternion getParentToLocalRot(long i);   // rotates vectors in frame parent(i) to vectors in frame i.
+
+  [Value] btVector3 localPosToWorld(long i, [Const, Ref] btVector3 vec);
+  [Value] btVector3 localDirToWorld(long i, [Const, Ref] btVector3 vec);
+  [Value] btVector3 worldPosToLocal(long i, [Const, Ref] btVector3 vec);
+  [Value] btVector3 worldDirToLocal(long i, [Const, Ref] btVector3 vec);
+  
+  float getKineticEnergy();
+  [Value] btVector3 getAngularMomentum();
+
+  void clearForcesAndTorques();
+	void clearVelocities();
+
+  void addBaseForce([Const, Ref] btVector3 f);
+  void addBaseTorque([Const, Ref] btVector3 t);
+  void addLinkForce(long i, [Const, Ref] btVector3 f);
+  void addLinkTorque(long i, [Const, Ref] btVector3 t);
+  void addJointTorque(long i, float Q);
+
+  [Const, Ref] btVector3 getBaseForce();
+  [Const, Ref] btVector3 getBaseTorque();
+  [Const, Ref] btVector3 getLinkForce(long i);
+  [Const, Ref] btVector3 getLinkTorque(long i);
+  float getJointTorque(long i);
+
+
+  //
+  // dynamics routines.
+  //
+
+  // timestep the velocities (given the external forces/torques set using addBaseForce etc).
+  // also sets up caches for calcAccelerationDeltas.
+  //
+  // Note: the caller must provide three vectors which are used as
+  // temporary scratch space. The idea here is to reduce dynamic
+  // memory allocation: the same scratch vectors can be re-used
+  // again and again for different Multibodies, instead of each
+  // btMultiBody allocating (and then deallocating) their own
+  // individual scratch buffers. This gives a considerable speed
+  // improvement, at least on Windows (where dynamic memory
+  // allocation appears to be fairly slow).
+  
+  void stepVelocities(float dt,
+                      [Ref] btScalarArray scratch_r,
+                      [Ref] btVector3Array scratch_v,
+                      [Ref] btMatrix3x3Array scratch_m);
+
+  void calcAccelerationDeltas([Const] float[] force, float[] output,
+                              [Ref] btScalarArray scratch_r,
+                              [Ref] btVector3Array scratch_v);
+
+  void applyDeltaVee([Const] float[] delta_vee);
+  void applyDeltaVee([Const] float[] delta_vee, float multiplier);
+
+  void stepPositions(float dt);
+
+  void fillContactJacobian(long link,
+                            [Const, Ref] btVector3 contact_point,
+                            [Const, Ref] btVector3 normal,
+                            float[] jac,
+                            [Ref] btScalarArray scratch_r,
+                            [Ref] btVector3Array scratch_v,
+                            [Ref] btMatrix3x3Array scratch_m);
+
+  void setCanSleep(boolean canSleep);
+
+  boolean isAwake();
+  void wakeUp();
+  void goToSleep();
+  void checkMotionAndSleepIfRequired(float timestep);
+    
+	boolean hasFixedBase();
+
+	long getCompanionId();
+	void setCompanionId(long id);
+	void setNumLinks(long numLinks); //careful: when changing the number of links, make sure to re-initialize or update existing links
+	float getLinearDamping();
+	void setLinearDamping(float damp);
+	float getAngularDamping();
+	boolean getUseGyroTerm();
+	void setUseGyroTerm(boolean useGyro);
+	float getMaxAppliedImpulse();
+	void setMaxAppliedImpulse(float maxImp);
+
+	void setHasSelfCollision(boolean hasSelfCollision);
+	boolean hasSelfCollision();
+};
+
+interface btMultiBodyJacobianData {
+	[Value] attribute btScalarArray		  m_jacobians;
+	[Value] attribute btScalarArray		  m_deltaVelocitiesUnitImpulse;
+	[Value] attribute btScalarArray		  m_deltaVelocities;
+	[Value] attribute btScalarArray		  scratch_r;
+	[Value] attribute btVector3Array		scratch_v;
+	[Value] attribute btMatrix3x3Array	scratch_m;
+	attribute btSolverBodyArray 	      m_solverBodyPool;
+	attribute long									    m_fixedBodyId;
+};
+
+interface btMultiBodyConstraint {
+	// void btMultiBodyConstraint(btMultiBody bodyA, btMultiBody bodyB,long linkA, long linkB, long numRows, boolean isUnilateral);
+
+	long getIslandIdA();
+	long getIslandIdB();
+	
+	// void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
+	// 	[Ref] btMultiBodyJacobianData data,
+	// 	[Const, Ref] btContactSolverInfo infoGlobal);
+
+	long getNumRows();
+	btMultiBody getMultiBodyA();
+  btMultiBody	getMultiBodyB();
+
+	// current constraint position
+  // constraint is pos >= 0 for unilateral, or pos = 0 for bilateral
+  // NOTE: ignored position for friction rows.
+  float getPosition(long row);
+  void setPosition(long row, float pos);
+
+	boolean isUnilateral();
+
+	// jacobian blocks.
+  // each of size 6 + num_links. (jacobian2 is null if no body2.)
+  // format: 3 'omega' coefficients, 3 'v' coefficients, then the 'qdot' coefficients.
+  // float* jacobianA(long row);
+  // [Const] float* jacobianA(long row);
+  // float* jacobianB(long row);
+  // [Const] float* jacobianB(long row);
+	float	getMaxAppliedImpulse();
+	void	setMaxAppliedImpulse(float maxImp);
+};
+
+interface btMultiBodyConstraintSolver {
+	// void solveMultiBodyGroup(btCollisionObject* bodies, long numBodies, btPersistentManifold* manifold,long numManifolds,btTypedConstraint* constraints,long numConstraints,btMultiBodyConstraint* multiBodyConstraints, long numMultiBodyConstraints, [Const, Ref] btContactSolverInfo info, btIDebugDraw debugDrawer, btDispatcher dispatcher);
+};
+btMultiBodyConstraintSolver implements btSequentialImpulseConstraintSolver;
+
+interface btMultiBodyDynamicsWorld {
+	void btMultiBodyDynamicsWorld(btDispatcher dispatcher, btBroadphaseInterface pairCache, btMultiBodyConstraintSolver constraintSolver, btCollisionConfiguration collisionConfiguration);
+	
+	void addMultiBody(btMultiBody body, short group, short mask);
+	void removeMultiBody(btMultiBody body);
+	void addMultiBodyConstraint( btMultiBodyConstraint constraint);
+	void removeMultiBodyConstraint( btMultiBodyConstraint constraint);
+};
+btMultiBodyDynamicsWorld implements btDiscreteDynamicsWorld;
+
+interface btMultiBodyJointLimitConstraint {
+	void btMultiBodyJointLimitConstraint(btMultiBody body, long link, float lower, float upper);
+
+	long getIslandIdA();
+	long getIslandIdB();
+
+	void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
+		[Ref] btMultiBodyJacobianData data,
+		[Const, Ref] btContactSolverInfo infoGlobal);
+};
+btMultiBodyJointLimitConstraint implements btMultiBodyConstraint;
+
+interface btMultiBodyJointMotor {
+	void btMultiBodyJointMotor(btMultiBody body, long link, float desiredVelocity, float maxMotorImpulse);
+
+	long getIslandIdA();
+	long getIslandIdB();
+
+	void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
+		[Ref] btMultiBodyJacobianData data,
+		[Const, Ref] btContactSolverInfo infoGlobal);
+};
+btMultiBodyJointMotor implements btMultiBodyConstraint;
+
+interface btMultiBodyPoint2Point {
+	void btMultiBodyPoint2Point(btMultiBody body, long link, btRigidBody bodyB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB);
+	void btMultiBodyPoint2Point(btMultiBody bodyA, long linkA, btMultiBody bodyB, long linkB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB);
+
+	long getIslandIdA();
+	long getIslandIdB();
+
+	void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
+		[Ref] btMultiBodyJacobianData data,
+		[Const, Ref] btContactSolverInfo infoGlobal);
+
+	[Const, Ref] btVector3 getPivotInB();
+	void setPivotInB([Const, Ref] btVector3 pivotInB);
+};
+btMultiBodyPoint2Point implements btMultiBodyConstraint;
+
+interface btMultiBodySolverConstraint {
+	attribute long				m_deltaVelAindex;//more generic version of m_relpos1CrossNormal/m_contactNormal1
+	[Value] attribute btVector3		m_relpos1CrossNormal;
+	[Value] attribute btVector3		m_contactNormal1;
+	attribute long				m_jacAindex;
+
+	attribute long				m_deltaVelBindex;
+	[Value] attribute btVector3		m_contactNormal2; //usually m_contactNormal2 == -m_contactNormal1, but not always
+	[Value] attribute btVector3		m_relpos2CrossNormal;
+	attribute long				m_jacBindex;
+
+	[Value] attribute btVector3		m_angularComponentA;
+	[Value] attribute btVector3		m_angularComponentB;
+	
+	// mutable btSimdScalar	m_appliedPushImpulse;
+	// mutable btSimdScalar	m_appliedImpulse;
+
+	attribute float	m_friction;
+	attribute float	m_jacDiagABInv;
+	attribute float		m_rhs;
+	attribute float		m_cfm;
+	
+  attribute float		m_lowerLimit;
+	attribute float		m_upperLimit;
+	attribute float		m_rhsPenetration;
+
+	attribute long	m_overrideNumSolverIterations;
+  attribute long			m_frictionIndex;
+
+	attribute long m_solverBodyIdA;
+	attribute btMultiBody m_multiBodyA;
+	attribute long			m_linkA;
+	
+	attribute long m_solverBodyIdB;
+	attribute btMultiBody m_multiBodyB;
+	attribute long			m_linkB;
+};
+
+// enum btMultiBodySolverConstraint_btSolverConstraintType {
+//   "btMultiBodySolverConstraint::BT_SOLVER_CONTACT_1D",
+//   "btMultiBodySolverConstraint::BT_SOLVER_FRICTION_1D"
+// };
+
+interface	btMultiBodyConstraintArray {
+  long size();
+  [Const, Ref] btMultiBodySolverConstraint at(long n);
+};
+
+interface btMLCPSolverInterface {
+	//return true is it solves the problem successfully
+	// boolean solveMLCP([Const, Ref] btMatrixXu A, [Const, Ref] btVectorXu b, [Ref] btVectorXu x, [Const, Ref] btVectorXu lo, [Const, Ref] btVectorXu hi, [Const, Ref] btAlignedObjectArray<int> limitDependency, long numIterations, boolean useSparsity);
+};
+
+interface btDantzigSolver {
+  void btDantzigSolver();
+};
+btDantzigSolver implements btMLCPSolverInterface;
+
+interface btSolveProjectedGaussSeidel {
+  void btSolveProjectedGaussSeidel();
+};
+btSolveProjectedGaussSeidel implements btMLCPSolverInterface;
+
+interface btMLCPSolver {
+	void btMLCPSolver(btMLCPSolverInterface solver);
+	
+	void setMLCPSolver(btMLCPSolverInterface solver);
+
+	long getNumFallbacks();
+	void setNumFallbacks(long num);
+
+	btConstraintSolverType getSolverType();
+};
+btMLCPSolver implements btSequentialImpulseConstraintSolver;
 
 // soft bodies
 
