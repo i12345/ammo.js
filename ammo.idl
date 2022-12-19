@@ -1,3 +1,6 @@
+interface TopLevelFunctions {
+  [Value] static btVector3 quatRotate_([Const, Ref] btQuaternion rotation, [Const, Ref] btVector3 v);
+};
 
 // Linear Math
 
@@ -376,18 +379,59 @@ interface btFace {
 };
 
 interface btVector3Array {
+  void btVector3Array();
   long size();
   [Const, Ref] btVector3 at(long n);
+  void clear();
+  void pop_back();
+  void resize(long newsize, [Const, Ref] btVector3? fillData);
+  [Ref] btVector3 expandNonInitializing();
+  [Ref] btVector3 expand([Const, Ref] btVector3? fillValue);
+  void push_back([Const, Ref] btVector3 _Val);
+  long capacity();
+  void reserve(long _Count);
+};
+
+interface btQuaternionArray {
+  void btQuaternionArray();
+  long size();
+  [Const, Ref] btQuaternion at(long n);
+  void clear();
+  void pop_back();
+  void resize(long newsize, [Const, Ref] btQuaternion? fillData);
+  [Ref] btQuaternion expandNonInitializing();
+  [Ref] btQuaternion expand([Const, Ref] btQuaternion? fillValue);
+  void push_back([Const, Ref] btQuaternion _Val);
+  long capacity();
+  void reserve(long _Count);
 };
 
 interface btMatrix3x3Array {
+  void btMatrix3x3Array();
   long size();
   [Const, Ref] btMatrix3x3 at(long n);
+  void clear();
+  void pop_back();
+  void resize(long newsize, [Const, Ref] btMatrix3x3? fillData);
+  [Ref] btMatrix3x3 expandNonInitializing();
+  [Ref] btMatrix3x3 expand([Const, Ref] btMatrix3x3? fillValue);
+  void push_back([Const, Ref] btMatrix3x3 _Val);
+  long capacity();
+  void reserve(long _Count);
 };
 
 interface btFaceArray {
+  void btFaceArray();
   long size();
   [Const, Ref] btFace at(long n);
+  void clear();
+  void pop_back();
+  void resize(long newsize, [Const, Ref] btFace? fillData);
+  [Ref] btFace expandNonInitializing();
+  [Ref] btFace expand([Const, Ref] btFace? fillValue);
+  void push_back([Const, Ref] btFace _Val);
+  long capacity();
+  void reserve(long _Count);
 };
 
 interface btConvexPolyhedron {
@@ -787,12 +831,60 @@ interface btConstraintSetting {
   attribute float m_impulseClamp;
 };
 
+interface btJointFeedback {
+	[Value] attribute btVector3 m_appliedForceBodyA;
+	[Value] attribute btVector3 m_appliedTorqueBodyA;
+	[Value] attribute btVector3 m_appliedForceBodyB;
+	[Value] attribute btVector3 m_appliedTorqueBodyB;
+};
+
 interface btTypedConstraint {
+	long getOverrideNumSolverIterations();
+	///override the number of constraint solver iterations used to solve this constraint
+	///-1 will use the default number of iterations, as specified in SolverInfo.m_numIterations
+	void setOverrideNumSolverIterations(long overideNumIterations);
+  
   void enableFeedback(boolean needsFeedback);
+	boolean needsFeedback();
+
+	void setJointFeedback(btJointFeedback jointFeedback);
+	[Const] btJointFeedback getJointFeedback();
+
+	///getAppliedImpulse is an estimated total applied impulse. 
+	///This feedback could be used to determine breaking constraints or playing sounds.
+	float getAppliedImpulse();
+
+	btTypedConstraintType getConstraintType();
+
   [Const] float getBreakingImpulseThreshold();
   void setBreakingImpulseThreshold([Const] float threshold);
   [Const] float getParam(long num, long axis);
   void setParam(long num, float value, long axis);
+
+	boolean isEnabled();
+	void setEnabled(boolean enabled);
+
+
+	[Const, Ref] btRigidBody getRigidBodyA();
+	[Const, Ref] btRigidBody getRigidBodyB();
+
+	long getUserConstraintType();
+	void setUserConstraintType(long userConstraintType);
+
+	[Ref] static btRigidBody getFixedBody();
+};
+
+enum btTypedConstraintType {
+	"POINT2POINT_CONSTRAINT_TYPE",
+	"HINGE_CONSTRAINT_TYPE",
+	"CONETWIST_CONSTRAINT_TYPE",
+	"D6_CONSTRAINT_TYPE",
+	"SLIDER_CONSTRAINT_TYPE",
+	"CONTACT_CONSTRAINT_TYPE",
+	"D6_SPRING_CONSTRAINT_TYPE",
+	"GEAR_CONSTRAINT_TYPE",
+	"FIXED_CONSTRAINT_TYPE",
+	"MAX_CONSTRAINT_TYPE"
 };
 
 enum btConstraintParams {
@@ -1177,14 +1269,15 @@ interface btMultibodyLink {
 	void btMultibodyLink();
 };
 
-interface btMultiBodyLinkCollider {
+interface btMultiBodyLinkCollider : btCollisionObject {
 	attribute btMultiBody m_multiBody;
 	attribute long m_link;
 
 	void btMultiBodyLinkCollider(btMultiBody multiBody, long link);
-  
+  [Const] static btMultiBodyLinkCollider upcast([Const] btCollisionObject colObj);
 	boolean checkCollideWithOverride([Const] btCollisionObject co);
 };
+btMultiBodyLinkCollider implements btCollisionObject;
 
 interface btMultiBody {
   void btMultiBody(long n_links,                // NOT including the base
@@ -1409,12 +1502,13 @@ interface btMultiBodyConstraint {
 	void	setMaxAppliedImpulse(float maxImp);
 };
 
-interface btMultiBodyConstraintSolver {
+interface btMultiBodyConstraintSolver : btSequentialImpulseConstraintSolver {
+  void btMultiBodyConstraintSolver();
 	// void solveMultiBodyGroup(btCollisionObject* bodies, long numBodies, btPersistentManifold* manifold,long numManifolds,btTypedConstraint* constraints,long numConstraints,btMultiBodyConstraint* multiBodyConstraints, long numMultiBodyConstraints, [Const, Ref] btContactSolverInfo info, btIDebugDraw debugDrawer, btDispatcher dispatcher);
 };
 btMultiBodyConstraintSolver implements btSequentialImpulseConstraintSolver;
 
-interface btMultiBodyDynamicsWorld {
+interface btMultiBodyDynamicsWorld : btDiscreteDynamicsWorld {
 	void btMultiBodyDynamicsWorld(btDispatcher dispatcher, btBroadphaseInterface pairCache, btMultiBodyConstraintSolver constraintSolver, btCollisionConfiguration collisionConfiguration);
 	
 	void addMultiBody(btMultiBody body, short group, short mask);
@@ -1424,7 +1518,7 @@ interface btMultiBodyDynamicsWorld {
 };
 btMultiBodyDynamicsWorld implements btDiscreteDynamicsWorld;
 
-interface btMultiBodyJointLimitConstraint {
+interface btMultiBodyJointLimitConstraint : btMultiBodyConstraint {
 	void btMultiBodyJointLimitConstraint(btMultiBody body, long link, float lower, float upper);
 
 	long getIslandIdA();
@@ -1436,7 +1530,7 @@ interface btMultiBodyJointLimitConstraint {
 };
 btMultiBodyJointLimitConstraint implements btMultiBodyConstraint;
 
-interface btMultiBodyJointMotor {
+interface btMultiBodyJointMotor : btMultiBodyConstraint {
 	void btMultiBodyJointMotor(btMultiBody body, long link, float desiredVelocity, float maxMotorImpulse);
 
 	long getIslandIdA();
@@ -1448,7 +1542,7 @@ interface btMultiBodyJointMotor {
 };
 btMultiBodyJointMotor implements btMultiBodyConstraint;
 
-interface btMultiBodyPoint2Point {
+interface btMultiBodyPoint2Point : btMultiBodyConstraint {
 	void btMultiBodyPoint2Point(btMultiBody body, long link, btRigidBody bodyB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB);
 	void btMultiBodyPoint2Point(btMultiBody bodyA, long linkA, btMultiBody bodyB, long linkB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB);
 
@@ -1508,8 +1602,17 @@ interface btMultiBodySolverConstraint {
 // };
 
 interface	btMultiBodyConstraintArray {
+  void btMultiBodyConstraintArray();
   long size();
   [Const, Ref] btMultiBodySolverConstraint at(long n);
+  void clear();
+  void pop_back();
+  void resize(long newsize, [Const, Ref] btMultiBodySolverConstraint? fillData);
+  [Ref] btMultiBodySolverConstraint expandNonInitializing();
+  [Ref] btMultiBodySolverConstraint expand([Const, Ref] btMultiBodySolverConstraint? fillValue);
+  void push_back([Const, Ref] btMultiBodySolverConstraint _Val);
+  long capacity();
+  void reserve(long _Count);
 };
 
 interface btMLCPSolverInterface {
@@ -1517,17 +1620,17 @@ interface btMLCPSolverInterface {
 	// boolean solveMLCP([Const, Ref] btMatrixXu A, [Const, Ref] btVectorXu b, [Ref] btVectorXu x, [Const, Ref] btVectorXu lo, [Const, Ref] btVectorXu hi, [Const, Ref] btAlignedObjectArray<int> limitDependency, long numIterations, boolean useSparsity);
 };
 
-interface btDantzigSolver {
+interface btDantzigSolver : btMLCPSolverInterface {
   void btDantzigSolver();
 };
 btDantzigSolver implements btMLCPSolverInterface;
 
-interface btSolveProjectedGaussSeidel {
+interface btSolveProjectedGaussSeidel : btMLCPSolverInterface {
   void btSolveProjectedGaussSeidel();
 };
 btSolveProjectedGaussSeidel implements btMLCPSolverInterface;
 
-interface btMLCPSolver {
+interface btMLCPSolver : btSequentialImpulseConstraintSolver {
 	void btMLCPSolver(btMLCPSolverInterface solver);
 	
 	void setMLCPSolver(btMLCPSolverInterface solver);

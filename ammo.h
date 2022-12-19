@@ -28,9 +28,12 @@
 #include "BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h"
 #include "BulletCollision/Gimpact/btGImpactShape.h"
 
+#include "LinearMath/btQuaternion.h"
+
 //Web IDL doesn't seem to support C++ templates so this is the best we can do
 //https://stackoverflow.com/questions/42517010/is-there-a-way-to-create-webidl-bindings-for-c-templated-types#comment82966925_42517010
 typedef btAlignedObjectArray<btVector3> btVector3Array;
+typedef btAlignedObjectArray<btQuaternion> btQuaternionArray;
 typedef btAlignedObjectArray<btMatrix3x3> btMatrix3x3Array;
 typedef btAlignedObjectArray<btFace> btFaceArray;
 typedef btAlignedObjectArray<int> btIntArray;
@@ -39,3 +42,10 @@ typedef btAlignedObjectArray<const btCollisionObject*> btConstCollisionObjectArr
 typedef btAlignedObjectArray<btScalar> btScalarArray;
 
 typedef btAlignedObjectArray<btSolverBody> btSolverBodyArray;
+
+class TopLevelFunctions {
+public:
+    static btVector3 quatRotate_(const btQuaternion& rotation, const btVector3& v){
+        return quatRotate(rotation, v);
+    }
+};
