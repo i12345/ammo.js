@@ -9,18 +9,24 @@
 #include "BulletDynamics/Featherstone/btMultiBodyLink.h"
 #include "BulletDynamics/Featherstone/btMultiBodyLinkCollider.h"
 #include "BulletDynamics/Featherstone/btMultiBodyConstraint.h"
+#include "BulletDynamics/Featherstone/btMultiBodyFixedConstraint.h"
+#include "BulletDynamics/Featherstone/btMultiBodyGearConstraint.h"
 #include "BulletDynamics/Featherstone/btMultiBodyJointLimitConstraint.h"
 #include "BulletDynamics/Featherstone/btMultiBodyJointMotor.h"
 #include "BulletDynamics/Featherstone/btMultiBodyPoint2Point.h"
+#include "BulletDynamics/Featherstone/btMultiBodySliderConstraint.h"
+#include "BulletDynamics/Featherstone/btMultiBodySphericalJointLimit.h"
+#include "BulletDynamics/Featherstone/btMultiBodySphericalJointMotor.h"
 #include "BulletDynamics/Featherstone/btMultiBodyConstraintSolver.h"
 #include "BulletDynamics/Featherstone/btMultiBodyDynamicsWorld.h"
 #include "BulletDynamics/Featherstone/btMultiBodySolverConstraint.h"
-#include "BulletDynamics/MLCPSolvers/btDantzigLCP.h"
-#include "BulletDynamics/MLCPSolvers/btDantzigSolver.h"
-#include "BulletDynamics/MLCPSolvers/btMLCPSolver.h"
+#include "BulletDynamics/Featherstone/btMultiBodyMLCPConstraintSolver.h"
 #include "BulletDynamics/MLCPSolvers/btMLCPSolverInterface.h"
-#include "BulletDynamics/MLCPSolvers/btPATHSolver.h"
+#include "BulletDynamics/MLCPSolvers/btMLCPSolver.h"
+#include "BulletDynamics/MLCPSolvers/btDantzigSolver.h"
+#include "BulletDynamics/MLCPSolvers/btLemkeSolver.h"
 #include "BulletDynamics/MLCPSolvers/btSolveProjectedGaussSeidel.h"
+#include "BulletDynamics/MLCPSolvers/btPATHSolver.h"
 #include "BulletSoftBody/btDefaultSoftBodySolver.h"
 #include "BulletSoftBody/btSoftBody.h"
 #include "BulletSoftBody/btSoftBodyHelpers.h"
@@ -59,6 +65,17 @@ class AdapterFunctions {
 public:
     static void setInternalTickCallback(btDynamicsWorld *world, void* cb, void* worldUserInfo = 0, bool isPreTick = false) {
         world->setInternalTickCallback((btInternalTickCallback)cb, worldUserInfo, isPreTick);
+    }
+};
+
+class Clone {
+public:
+    static btVector3* Vector3(const btVector3 &v) {
+        return new btVector3(v);
+    }
+
+    static btQuaternion* Quaternion(const btQuaternion &q) {
+        return new btQuaternion(q);
     }
 };
 

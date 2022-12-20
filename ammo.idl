@@ -7,6 +7,11 @@ interface AdapterFunctions {
   static void setInternalTickCallback(btDynamicsWorld world, VoidPtr cb, optional VoidPtr worldUserInfo, optional boolean isPreTick);
 };
 
+interface Clone {
+  static btVector3 Vector3([Const, Ref] btVector3 v);
+  static btQuaternion Quaternion([Const, Ref] btQuaternion q);
+};
+
 // Linear Math
 
 interface btIDebugDraw {
@@ -31,6 +36,7 @@ interface DebugDrawer {
 
 interface btVector3 {
   void btVector3();
+  // void btVector3([Const, Ref] btVector3 v);
   void btVector3(float x, float y, float z);
   float length();
   float x();
@@ -41,8 +47,19 @@ interface btVector3 {
   void setZ(float z);
   void setValue(float x, float y, float z);
   void normalize();
-  [Value] btVector3 rotate([Ref] btVector3 wAxis, float angle);
+  [Value] btVector3 normalized();
+  [Value] btVector3 rotate([Const, Ref] btVector3 wAxis, [Const] float angle);
   float dot([Ref] btVector3 v);
+  float angle([Const, Ref] btVector3 v);
+  [Value] btVector3 absolute();
+  [Value] btVector3 cross([Const, Ref] btVector3 v);
+  float triple([Const, Ref] btVector3 v1, [Const, Ref] btVector3 v2);
+  long minAxis();
+  long maxAxis();
+  long furthestAxis();
+  long closestAxis();
+  void setInterpolate3([Const, Ref] btVector3 v0, [Const, Ref] btVector3 v1, float rt);
+  // [Value] btVector3 lerp([Const, Ref] btVector3 v, [Const, Ref] float t);
   [Operator="*=", Ref] btVector3 op_mul(float x);
   [Operator="+=", Ref] btVector3 op_add([Ref] btVector3 v);
   [Operator="-=", Ref] btVector3 op_sub([Ref] btVector3 v);
@@ -68,6 +85,8 @@ interface btQuadWord {
 };
 
 interface btQuaternion {
+  void btQuaternion();
+  // void btQuaternion([Const, Ref] btQuaternion q);
   void btQuaternion(float x, float y, float z, float w);
   void setValue(float x, float y, float z, float w);
   void setEulerZYX(float z, float y, float x);
@@ -1776,6 +1795,15 @@ interface btMultiBodyConstraint {
 	void	setMaxAppliedImpulse(float maxImp);
 };
 
+interface btMultiBodyMLCPConstraintSolver : btMultiBodyConstraintSolver {
+  void btMultiBodyMLCPConstraintSolver(btMLCPSolverInterface solver);
+	void setMLCPSolver(btMLCPSolverInterface solver);
+	long getNumFallbacks();
+	void setNumFallbacks(long num);
+	btConstraintSolverType getSolverType();
+};
+btMultiBodyMLCPConstraintSolver implements btMultiBodyConstraintSolver;
+
 interface btMultiBodyConstraintSolver : btSequentialImpulseConstraintSolver {
   void btMultiBodyConstraintSolver();
 	// void solveMultiBodyGroup(btCollisionObject* bodies, long numBodies, btPersistentManifold* manifold,long numManifolds,btTypedConstraint* constraints,long numConstraints,btMultiBodyConstraint* multiBodyConstraints, long numMultiBodyConstraints, [Const, Ref] btContactSolverInfo info, btIDebugDraw debugDrawer, btDispatcher dispatcher);
@@ -1792,8 +1820,10 @@ interface btMultiBodyDynamicsWorld : btDiscreteDynamicsWorld {
 };
 btMultiBodyDynamicsWorld implements btDiscreteDynamicsWorld;
 
-interface btMultiBodyJointLimitConstraint : btMultiBodyConstraint {
-	void btMultiBodyJointLimitConstraint(btMultiBody body, long link, float lower, float upper);
+interface btMultiBodyFixedConstraint : btMultiBodyConstraint {
+	void btMultiBodyFixedConstraint(btMultiBody bodyA, long linkA, btMultiBody bodyB, long linkB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB, [Const, Ref] btMatrix3x3 frameInA, [Const, Ref] btMatrix3x3 frameInB);
+  
+  void finalizeMultiDof();
 
 	long getIslandIdA();
 	long getIslandIdB();
@@ -1801,11 +1831,71 @@ interface btMultiBodyJointLimitConstraint : btMultiBodyConstraint {
 	void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
 		[Ref] btMultiBodyJacobianData data,
 		[Const, Ref] btContactSolverInfo infoGlobal);
+
+  [Const, Ref] btVector3 getPivotInA();
+  void setPivotInA([Const, Ref] btVector3 pivotInA);
+  [Const, Ref] btVector3 getPivotInB();
+  void setPivotInB([Const, Ref] btVector3 pivotInB);
+
+  [Const, Ref] btMatrix3x3 getFrameInA();
+  void setFrameInA([Const, Ref] btMatrix3x3 frameInA);
+  [Const, Ref] btMatrix3x3 getFrameInB();
+  void setFrameInB([Const, Ref] btMatrix3x3 frameInB);
+};
+btMultiBodyFixedConstraint implements btMultiBodyConstraint;
+
+interface btMultiBodyGearConstraint : btMultiBodyConstraint {
+	void btMultiBodyGearConstraint(btMultiBody bodyA, long linkA, btMultiBody bodyB, long linkB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB, [Const, Ref] btMatrix3x3 frameInA, [Const, Ref] btMatrix3x3 frameInB);
+  
+  void finalizeMultiDof();
+
+	long getIslandIdA();
+	long getIslandIdB();
+
+	void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
+		[Ref] btMultiBodyJacobianData data,
+		[Const, Ref] btContactSolverInfo infoGlobal);
+
+  [Const, Ref] btVector3 getPivotInA();
+  void setPivotInA([Const, Ref] btVector3 pivotInA);
+  [Const, Ref] btVector3 getPivotInB();
+  void setPivotInB([Const, Ref] btVector3 pivotInB);
+
+  [Const, Ref] btMatrix3x3 getFrameInA();
+  void setFrameInA([Const, Ref] btMatrix3x3 frameInA);
+  [Const, Ref] btMatrix3x3 getFrameInB();
+  void setFrameInB([Const, Ref] btMatrix3x3 frameInB);
+
+	void setGearRatio(float gearRatio);
+	void setGearAuxLink(long gearAuxLink);
+	void setRelativePositionTarget(float relPosTarget);
+	void setErp(float erp);
+};
+btMultiBodyFixedConstraint implements btMultiBodyConstraint;
+
+interface btMultiBodyJointLimitConstraint : btMultiBodyConstraint {
+	void btMultiBodyJointLimitConstraint(btMultiBody body, long link, float lower, float upper);
+
+  void finalizeMultiDof();
+
+	long getIslandIdA();
+	long getIslandIdB();
+
+	void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
+		[Ref] btMultiBodyJacobianData data,
+		[Const, Ref] btContactSolverInfo infoGlobal);
+
+	float getLowerBound();
+	float getUpperBound();
+	void setLowerBound(float lower);
+	void setUpperBound(float upper);
 };
 btMultiBodyJointLimitConstraint implements btMultiBodyConstraint;
 
 interface btMultiBodyJointMotor : btMultiBodyConstraint {
-	void btMultiBodyJointMotor(btMultiBody body, long link, float desiredVelocity, float maxMotorImpulse);
+	void btMultiBodyJointMotor(btMultiBody body, long link, long linkDoF, float desiredVelocity, float maxMotorImpulse);
+
+  void finalizeMultiDof();
 
 	long getIslandIdA();
 	long getIslandIdB();
@@ -1813,12 +1903,20 @@ interface btMultiBodyJointMotor : btMultiBodyConstraint {
 	void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
 		[Ref] btMultiBodyJacobianData data,
 		[Const, Ref] btContactSolverInfo infoGlobal);
+
+  void setVelocityTarget(float velTarget, optional float kd);
+  void setPositionTarget(float posTarget, optional float kp);
+  void setErp(float erp);
+  float getErp();
+  void setRhsClamp(float rhsClamp);
 };
 btMultiBodyJointMotor implements btMultiBodyConstraint;
 
 interface btMultiBodyPoint2Point : btMultiBodyConstraint {
 	void btMultiBodyPoint2Point(btMultiBody body, long link, btRigidBody bodyB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB);
 	void btMultiBodyPoint2Point(btMultiBody bodyA, long linkA, btMultiBody bodyB, long linkB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB);
+
+	void finalizeMultiDof();
 
 	long getIslandIdA();
 	long getIslandIdB();
@@ -1831,6 +1929,86 @@ interface btMultiBodyPoint2Point : btMultiBodyConstraint {
 	void setPivotInB([Const, Ref] btVector3 pivotInB);
 };
 btMultiBodyPoint2Point implements btMultiBodyConstraint;
+
+interface btMultiBodySliderConstraint : btMultiBodyConstraint {
+	void btMultiBodySliderConstraint(btMultiBody body, long link, btRigidBody bodyB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB, [Const, Ref] btMatrix3x3 frameInA, [Const, Ref] btMatrix3x3 frameInB, [Const, Ref] btVector3 jointAxis);
+	void btMultiBodySliderConstraint(btMultiBody bodyA, long linkA, btMultiBody bodyB, long linkB, [Const, Ref] btVector3 pivotInA, [Const, Ref] btVector3 pivotInB, [Const, Ref] btMatrix3x3 frameInA, [Const, Ref] btMatrix3x3 frameInB, [Const, Ref] btVector3 jointAxis);
+
+	void finalizeMultiDof();
+
+	long getIslandIdA();
+	long getIslandIdB();
+
+	void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
+		[Ref] btMultiBodyJacobianData data,
+		[Const, Ref] btContactSolverInfo infoGlobal);
+
+	[Const, Ref] btVector3 getPivotInA();
+	void setPivotInA([Const, Ref] btVector3 pivotInA);
+	[Const, Ref] btVector3 getPivotInB();
+	void setPivotInB([Const, Ref] btVector3 pivotInB);
+	[Const, Ref] btMatrix3x3 getFrameInA();
+	void setFrameInA([Const, Ref] btMatrix3x3 frameInA);
+	[Const, Ref] btMatrix3x3 getFrameInB();
+	void setFrameInB([Const, Ref] btMatrix3x3 frameInB);
+  [Const, Ref] btVector3 getJointAxis();
+  void setJointAxis([Const, Ref] btVector3 jointAxis);
+};
+btMultiBodySliderConstraint implements btMultiBodyConstraint;
+
+interface btMultiBodySphericalJointLimit : btMultiBodyConstraint {
+	void btMultiBodySphericalJointLimit(btMultiBody body, long link, 
+		float swingxRange,
+		float swingyRange,
+		float twistRange,
+		float maxAppliedImpulse);
+
+	void finalizeMultiDof();
+
+	long getIslandIdA();
+	long getIslandIdB();
+
+	void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
+		[Ref] btMultiBodyJacobianData data,
+		[Const, Ref] btContactSolverInfo infoGlobal);
+
+  void setVelocityTarget([Const, Ref] btVector3 velTarget, optional float kd);
+  void setVelocityTargetMultiDof([Const, Ref] btVector3 velTarget, [Const, Ref] optional btVector3 kd);
+  void setPositionTarget([Const, Ref] btQuaternion posTarget, optional float kp);
+  void setPositionTargetMultiDof([Const, Ref] btQuaternion posTarget, [Const, Ref] optional btVector3 kp);
+  void setErp(float erp);
+  float getErp();
+  void setRhsClamp(float rhsClamp);
+  float getMaxAppliedImpulseMultiDof(long i);
+  void setMaxAppliedImpulseMultiDof([Const, Ref] btVector3 maxImp);
+};
+btMultiBodySphericalJointLimit implements btMultiBodyConstraint;
+
+interface btMultiBodySphericalJointMotor : btMultiBodyConstraint {
+	void btMultiBodySphericalJointMotor(btMultiBody body, long link, float maxMotorImpulse);
+
+	void finalizeMultiDof();
+
+	long getIslandIdA();
+	long getIslandIdB();
+
+	void createConstraintRows([Ref] btMultiBodyConstraintArray constraintRows,
+		[Ref] btMultiBodyJacobianData data,
+		[Const, Ref] btContactSolverInfo infoGlobal);
+
+  void setVelocityTarget([Const, Ref] btVector3 velTarget, optional float kd);
+  void setVelocityTargetMultiDof([Const, Ref] btVector3 velTarget, [Const, Ref] optional btVector3 kd);
+  void setPositionTarget([Const, Ref] btQuaternion posTarget, optional float kp);
+  void setPositionTargetMultiDof([Const, Ref] btQuaternion posTarget, [Const, Ref] optional btVector3 kp);
+  void setErp(float erp);
+  float getErp();
+  void setRhsClamp(float rhsClamp);
+  float getMaxAppliedImpulseMultiDof(long i);
+  void setMaxAppliedImpulseMultiDof([Const, Ref] btVector3 maxImp);
+  float getDamping(long i);
+  void setDamping([Const, Ref] btVector3 damping);
+};
+btMultiBodySphericalJointMotor implements btMultiBodyConstraint;
 
 interface btMultiBodySolverConstraint {
 	attribute long				m_deltaVelAindex;//more generic version of m_relpos1CrossNormal/m_contactNormal1
@@ -1903,6 +2081,11 @@ interface btSolveProjectedGaussSeidel : btMLCPSolverInterface {
   void btSolveProjectedGaussSeidel();
 };
 btSolveProjectedGaussSeidel implements btMLCPSolverInterface;
+
+interface btLemkeSolver : btMLCPSolverInterface {
+  void btLemkeSolver();
+};
+btLemkeSolver implements btMLCPSolverInterface;
 
 interface btMLCPSolver : btSequentialImpulseConstraintSolver {
 	void btMLCPSolver(btMLCPSolverInterface solver);
