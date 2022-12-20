@@ -1,5 +1,6 @@
 #include "btBulletDynamicsCommon.h"
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
+#include "BulletCollision/CollisionDispatch/btManifoldResult.h"
 #include "BulletCollision/CollisionShapes/btConvexPolyhedron.h"
 #include "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.h"
 #include "BulletCollision/CollisionShapes/btShapeHull.h"
@@ -47,6 +48,17 @@ class TopLevelFunctions {
 public:
     static btVector3 quatRotate_(const btQuaternion& rotation, const btVector3& v){
         return quatRotate(rotation, v);
+    }
+
+    static void set_gContactAddedCallback(void* cb) {
+        gContactAddedCallback = (ContactAddedCallback)cb;
+    }
+};
+
+class AdapterFunctions {
+public:
+    static void setInternalTickCallback(btDynamicsWorld *world, void* cb, void* worldUserInfo = 0, bool isPreTick = false) {
+        world->setInternalTickCallback((btInternalTickCallback)cb, worldUserInfo, isPreTick);
     }
 };
 

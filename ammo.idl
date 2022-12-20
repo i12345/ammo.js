@@ -1,5 +1,10 @@
 interface TopLevelFunctions {
   [Value] static btVector3 quatRotate_([Const, Ref] btQuaternion rotation, [Const, Ref] btVector3 v);
+  static void set_gContactAddedCallback(VoidPtr cb);
+};
+
+interface AdapterFunctions {
+  static void setInternalTickCallback(btDynamicsWorld world, VoidPtr cb, optional VoidPtr worldUserInfo, optional boolean isPreTick);
 };
 
 // Linear Math
@@ -240,8 +245,8 @@ interface btCollisionObjectWrapper {
 interface RayResultCallback {
   // abstract base class, no constructor
   boolean hasHit();
-  attribute short m_collisionFilterGroup;
-  attribute short m_collisionFilterMask;
+  attribute long m_collisionFilterGroup;
+  attribute long m_collisionFilterMask;
   attribute float m_closestHitFraction;
   [Const] attribute btCollisionObject m_collisionObject;
   attribute unsigned long m_flags;
@@ -1133,6 +1138,7 @@ interface btDynamicsWorld {
   void addAction(btActionInterface action);
   void removeAction(btActionInterface action);
   [Ref] btContactSolverInfo getSolverInfo();
+  //https://emscripten.org/docs/porting/guidelines/function_pointer_issues.html
   // void setInternalTickCallback(VoidPtr cb, optional VoidPtr worldUserInfo, optional boolean isPreTick);
 };
 btDynamicsWorld implements btCollisionWorld;
