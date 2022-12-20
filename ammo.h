@@ -49,3 +49,5 @@ public:
         return quatRotate(rotation, v);
     }
 };
+
+typedef btMultibodyLink::eFeatherstoneJointType btMultibodyLink_eFeatherstoneJointType;
