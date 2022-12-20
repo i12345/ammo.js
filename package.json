@@ -13,8 +13,8 @@
   },
   "homepage": "https://github.com/kripken/ammo.js",
   "devDependencies": {
-    "ava": "^3.11.0",
-    "http-server": "^0.12.3"
+    "ava": "^5.1.0",
+    "http-server": "^14.1.1"
   },
   "scripts": {
     "test": "npm run test-js && npm run test-wasm",
