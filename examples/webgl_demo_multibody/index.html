@@ -87,6 +87,8 @@
             var timeNextSpawn = time + objectTimePeriod;
             var maxNumObjects = 30;
 
+			var mb, mb_c;
+
 			// - Main code -
             init();
             animate();
@@ -234,7 +236,7 @@
 					var rbInfo = new Ammo.btRigidBodyConstructionInfo( mass, motionState, shape, localInertia );
 					var body = new Ammo.btRigidBody( rbInfo );
 
-					body.applyCentralImpulse(new Ammo.btVector3(20, 2, 0))
+					// body.applyCentralImpulse(new Ammo.btVector3(20, 2, 0))
 
 					threeObject.userData.physicsBody = body;
 					threeObject.castShadow = threeObject.receiveShadow = true
@@ -243,9 +245,9 @@
 					physicsWorld.addRigidBody( body );
 				}
 
-				multibody(
+				mb = multibody(
 						physicsWorld,
-						5,
+						6,
 						new Ammo.btVector3(0, 15.5, 0),
 						[1, 1, 1],
 						[0.25, 1, 0.25],
@@ -253,6 +255,14 @@
 						true,
 						0.05
 					);
+
+				mb_c = new Array(mb.getNumLinks());
+				for(let i = 0; i < mb_c.length; i++) {
+					mb_c[i] = new Ammo.btMultiBodyJointMotor(mb, i, 0, 0, (mb_c.length - i) + 1);
+					mb_c[i].setPositionTarget(30 * Math.PI / 180);
+					physicsWorld.addMultiBodyConstraint(mb_c[i]);
+					mb_c[i].finalizeMultiDof();
+				}
             }
 
 			function vec2str(v) {
@@ -578,7 +588,6 @@
 
                 render();
                 stats.update();
-
             }
 
             function render() {
