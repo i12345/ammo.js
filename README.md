@@ -39,10 +39,11 @@ Discussion takes place on IRC at #emscripten on Mozilla's server
 Instructions
 ------------
 
+The `dist` directory contains prebuilt javascript and WebAssembly files along with typings.
+
 `builds/ammo.js` contains a prebuilt version of ammo.js. This is probably what you want.
 
 You can also [build](#building) ammo.js yourself.
-
 
 Usage
 -----
@@ -66,7 +67,6 @@ in that directory might be useful as well. In particular see the WebGL
 demo code in
 
   `examples/webgl_demo/ammo.html`
-
 
 Bindings API
 ------------
@@ -115,7 +115,6 @@ to be aware of:
     | `/`       | `op_div`   |
     | `[]`      | `op_get`   |
     | `==`      | `op_eq`    |
-
 
 Building
 --------
@@ -167,7 +166,7 @@ To do this, you just have to install Docker and run:
   $ docker-compose run builder  # to build again the ammojs targets after any modification
   ```
 
-If you want to add arguments to cmake, you have to edit the `docker-compose.yml` file. 
+If you want to add arguments to cmake, you have to edit the `docker-compose.yml` file.
 
 Reducing Build Size
 -------------------
@@ -177,7 +176,6 @@ The size of the ammo.js builds can be reduced in several ways:
   * Removing uneeded interfaces from ammo.idl. Some good examples of this are `btIDebugDraw` and `DebugDrawer`, which are both only needed if visual debug rendering is desired.
 
   * Removing methods from the `-s EXPORTED_RUNTIME_METHODS=[]` argument in make.py. For example, `UTF8ToString` is only needed if printable error messages are desired from `DebugDrawer`.
-
 
 Testing
 -------
@@ -191,13 +189,12 @@ $ npm run test-wasm    # --> AMMO_PATH=builds/ammo.wasm.js ava
 
 It's also possible to run ava directly for more options:
 
-```
+```bash
 $ npx ava --verbose
 $ npx ava --node-arguments inspect
 ```
 
 When no `AMMO_PATH` is defined, `builds/ammo.js` is tested by default.
-
 
 Running the Examples
 --------------------
@@ -210,7 +207,6 @@ directory:
   ```bash
   $ npx http-server -p 3000 .
   ```
-
 
 Troubleshooting
 ---------------
@@ -226,7 +222,6 @@ Troubleshooting
       `Cannot read property 'ptr' of undefined`
 
     This is an annoying aspect of JavaScript, sadly.
-
 
 Reporting Issues
 ----------------
@@ -253,10 +248,7 @@ following steps:
     ok, using something like `firefox examples/webgl_demo/ammo.html`
     (chrome will need a webserver as it doesn't like file:// urls)
 
-
 Upstream Version
 ----------------
 
-Bullet is now a submodule within this repository.
-
-[Bullet 3.25](https://github.com/bulletphysics/bullet3/tree/2c204c49e56ed15ec5fcfa71d199ab6d6570b3f5)
+Bullet is now a submodule within this repository. Ammo.js was last built with [Bullet 3.25](https://github.com/bulletphysics/bullet3/tree/2c204c49e56ed15ec5fcfa71d199ab6d6570b3f5).
