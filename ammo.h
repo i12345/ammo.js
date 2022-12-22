@@ -79,4 +79,7 @@ public:
     }
 };
 
+typedef btCollisionObject::CollisionFlags btCollisionObject_CollisionFlags;
+typedef btCollisionObject::CollisionObjectTypes btCollisionObject_CollisionObjectTypes;
+typedef btCollisionObject::AnisotropicFrictionFlags btCollisionObject_AnisotropicFrictionFlags;
 typedef btMultibodyLink::eFeatherstoneJointType btMultibodyLink_eFeatherstoneJointType;

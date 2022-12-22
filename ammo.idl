@@ -222,13 +222,50 @@ interface btSymmetricSpatialDyad {
 
 // Collision
 
+enum btCollisionObject_CollisionFlags {
+  "btCollisionObject::CF_DYNAMIC_OBJECT",
+  "btCollisionObject::CF_STATIC_OBJECT",
+  "btCollisionObject::CF_KINEMATIC_OBJECT",
+  "btCollisionObject::CF_NO_CONTACT_RESPONSE",
+  "btCollisionObject::CF_CUSTOM_MATERIAL_CALLBACK",  //this allows per-triangle material (friction/restitution)
+  "btCollisionObject::CF_CHARACTER_OBJECT",
+  "btCollisionObject::CF_DISABLE_VISUALIZE_OBJECT",          //disable debug drawing
+  "btCollisionObject::CF_DISABLE_SPU_COLLISION_PROCESSING",  //disable parallel/SPU processing
+  "btCollisionObject::CF_HAS_CONTACT_STIFFNESS_DAMPING",
+  "btCollisionObject::CF_HAS_CUSTOM_DEBUG_RENDERING_COLOR",
+  "btCollisionObject::CF_HAS_FRICTION_ANCHOR",
+  "btCollisionObject::CF_HAS_COLLISION_SOUND_TRIGGER"
+};
+
+enum btCollisionObject_CollisionObjectTypes {
+  "btCollisionObject::CO_COLLISION_OBJECT",
+  "btCollisionObject::CO_RIGID_BODY",
+  "btCollisionObject::CO_GHOST_OBJECT",
+  "btCollisionObject::CO_SOFT_BODY",
+  "btCollisionObject::CO_HF_FLUID",
+  "btCollisionObject::CO_USER_TYPE",
+  "btCollisionObject::CO_FEATHERSTONE_LINK"
+};
+
+enum btCollisionObject_AnisotropicFrictionFlags {
+  "btCollisionObject::CF_ANISOTROPIC_FRICTION_DISABLED",
+  "btCollisionObject::CF_ANISOTROPIC_FRICTION",
+  "btCollisionObject::CF_ANISOTROPIC_ROLLING_FRICTION"
+};
+
 interface btCollisionObject {
+  [Const, Ref] btVector3 getAnisotropicFriction();
   void setAnisotropicFriction([Const, Ref] btVector3 anisotropicFriction, long frictionMode);
+  boolean hasAnisotropicFriction(optional long frictionMode);
   btCollisionShape getCollisionShape();
+  float getContactProcessingThreshold();
   void setContactProcessingThreshold(float contactProcessingThreshold);
+  long getActivationState();
   void setActivationState(long newState);
   void forceActivationState(long newState);
   void activate(optional boolean forceActivation);
+  void setDeactivationTime(float time);
+  float getDeactivationTime();
   boolean isActive();
   boolean isKinematicObject();
   boolean isStaticObject();
@@ -236,18 +273,27 @@ interface btCollisionObject {
   [Const] float getRestitution();
   [Const] float getFriction();
   [Const] float getRollingFriction();
+  float getSpinningFriction();
+  float getContactStiffness();
+  float getContactDamping();
   void setRestitution(float rest);
   void setFriction(float frict);
   void setRollingFriction(float frict);
+  void setSpinningFriction(float frict);
+  void setContactStiffnessAndDamping(float stiffness, float damping);
   [Ref] btTransform getWorldTransform();
   long getCollisionFlags();
   void setCollisionFlags(long flags);
-  void setWorldTransform([Const,Ref] btTransform worldTrans);
+  void setWorldTransform([Const, Ref] btTransform worldTrans);
   void setCollisionShape(btCollisionShape collisionShape);
   void setCcdMotionThreshold (float ccdMotionThreshold);
   void setCcdSweptSphereRadius (float radius);
   long getUserIndex();
+  long getUserIndex2();
+  long getUserIndex3();
   void setUserIndex(long index);
+  void setUserIndex2(long index);
+  void setUserIndex3(long index);
   VoidPtr getUserPointer();
   void setUserPointer(VoidPtr userPointer);
   [Const] btBroadphaseProxy getBroadphaseHandle();
