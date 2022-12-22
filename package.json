@@ -1,5 +1,5 @@
 {
-  "name": "ammojs",
+  "name": "ammojs3",
   "version": "0.0.3",
   "description": "Direct port of the Bullet physics engine to JavaScript using Emscripten",
   "main": "dist/ammo.js",
