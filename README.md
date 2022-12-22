@@ -1,6 +1,7 @@
 ammo.js
 =======
 
+This is an updated version of [ammo.js](https://github.com/kripken/ammo.js) with additional classes and members exported and typings integrated, following the example of [ammojs-typed](https://github.com/giniedp/ammojs-typed)
 
 Demos
 -----
@@ -118,6 +119,8 @@ to be aware of:
 
 Building
 --------
+
+After setting up, you can build ammo.js with the `build` script: `npm run build`.
 
 In order to build ammo.js yourself, you will need
 [Emscripten](http://emscripten.org) and [cmake](https://cmake.org/download).
@@ -254,4 +257,6 @@ following steps:
 Upstream Version
 ----------------
 
-Bullet 2.82 patched with [raycast fix from 2.83](https://github.com/bulletphysics/bullet3/commit/7151865c16ba996996206e1fd7869cbb1e7edd8d)
+Bullet is now a submodule within this repository.
+
+[Bullet 3.25](https://github.com/bulletphysics/bullet3/tree/2c204c49e56ed15ec5fcfa71d199ab6d6570b3f5)
