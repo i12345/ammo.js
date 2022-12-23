@@ -58,8 +58,9 @@ test('compound shape', t => {
 
   // Create capsule shape
   var capsuleShape = new Ammo.btCapsuleShape(0.4, 0.5);
-  capsuleShape.setMargin(margin);
-  t.assert(Math.abs(capsuleShape.getMargin() - margin) < delta, "capsuleShape margin" );
+  // See: bullet/src/BulletCollision/CollisionShapes/btCapsuleShape "setMargin"
+  // capsuleShape.setMargin(margin);
+  // t.assert(Math.abs(capsuleShape.getMargin() - margin) < delta, "capsuleShape margin" );
   vec.setValue(0, -1, 0);
   transform.setOrigin(vec);
   transform.setRotation(quat);
