@@ -1,6 +1,6 @@
 {
   "name": "ammojs3",
-  "version": "0.0.3",
+  "version": "0.0.3.1",
   "description": "Direct port of the Bullet physics engine to JavaScript using Emscripten",
   "main": "dist/ammo.js",
   "types": "dist/ammo.d.ts",
@@ -19,7 +19,8 @@
     "webidl2ts": "github:anotherpit/webidl2ts"
   },
   "scripts": {
-    "build": "npm run build:clean && npm run build:js+wasm && npm run build:export",
+    "build": "npm run build:full",
+    "build:full": "npm run build:clean && npm run build:partial",
     "build:partial": "npm run build:js+wasm && npm run build:export",
     "build:clean": "rm -rf dist && rm -rf builds",
     "build:js+wasm": "cmake -B builds -DCLOSURE=1 && cmake --build builds",
