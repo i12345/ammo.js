@@ -577,11 +577,18 @@ declare module Ammo {
     class btTriangleMesh extends btStridingMeshInterface {
         constructor(use32bitIndices?: boolean, use4componentVertices?: boolean);
         addTriangle(vertex0: btVector3, vertex1: btVector3, vertex2: btVector3, removeDuplicateVertices?: boolean): void;
+        addTriangleIndices(index1: number, index2: number, index3: number): void;
         findOrAddVertex(vertex: btVector3, removeDuplicateVertices: boolean): number;
         addIndex(index: number): void;
         getIndexedMeshArray(): btIndexedMeshArray;
     }
     type PHY_ScalarType = "PHY_FLOAT" | "PHY_DOUBLE" | "PHY_INTEGER" | "PHY_SHORT" | "PHY_FIXEDPOINT88" | "PHY_UCHAR";
+    class btTriangleCallback {
+        processTriangle(triangle: btVector3, partId: number, triangleIndex: number): void;
+    }
+    class btTriangleCallback_implJS {
+        processTriangle(triangle: btVector3, partId: number, triangleIndex: number): void;
+    }
     class btConcaveShape extends btCollisionShape {
     }
     class btEmptyShape extends btConcaveShape {
@@ -594,6 +601,7 @@ declare module Ammo {
     }
     class btBvhTriangleMeshShape extends btTriangleMeshShape {
         constructor(meshInterface: btStridingMeshInterface, useQuantizedAabbCompression: boolean, buildBvh?: boolean);
+        performRaycast(callback: btTriangleCallback, raySource: btVector3, rayTarget: btVector3): void;
     }
     class btHeightfieldTerrainShape extends btConcaveShape {
         constructor(heightStickWidth: number, heightStickLength: number, heightfieldData: unknown, heightScale: number, minHeight: number, maxHeight: number, upAxis: number, hdt: PHY_ScalarType, flipQuadEdges: boolean);
