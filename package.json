@@ -1,6 +1,6 @@
 {
   "name": "ammojs3",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "description": "Direct port of the Bullet physics engine to JavaScript using Emscripten",
   "main": "dist/ammo.js",
   "types": "dist/ammo.d.ts",
@@ -28,7 +28,7 @@
     "test": "npm run test-js && npm run test-wasm",
     "test-js": "AMMO_PATH=builds/ammo.js ava",
     "test-wasm": "AMMO_PATH=builds/ammo.wasm.js ava",
-    "generate": "yarn generate:module && yarn generate:ambient",
+    "generate": "npm run generate:module && npm run generate:ambient",
     "generate:module": "webidl2ts -i ./ammo.idl -n Ammo -ed -o ./builds/ammo.d.ts",
     "generate:ambient": "webidl2ts -i ./ammo.idl -n Ammo  -e -o ./builds/ammo-ambient.d.ts"
   }
