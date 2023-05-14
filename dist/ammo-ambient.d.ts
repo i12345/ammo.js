@@ -882,6 +882,8 @@ declare module Ammo {
         setGravity(acceleration: btVector3): void;
         getBroadphaseProxy(): btBroadphaseProxy;
         clearForces(): void;
+        setFlags(flags: number): void;
+        getFlags(): number;
     }
     class btSolverBody {
         get_m_worldTransform(): btTransform;
