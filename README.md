@@ -251,4 +251,4 @@ following steps:
 Upstream Version
 ----------------
 
-Bullet is now a submodule within this repository. Ammo.js was last built with [Bullet 3.25](https://github.com/bulletphysics/bullet3/tree/2c204c49e56ed15ec5fcfa71d199ab6d6570b3f5).
+Bullet is now a submodule within this repository. Ammo.js was last built with [Bullet 3.26](https://github.com/bulletphysics/bullet3/commit/6bb8d1123d8a55d407b19fd3357c724d0f5c9d3c).
