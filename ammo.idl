@@ -65,43 +65,43 @@ interface btVector3 {
   [Operator="-=", Ref] btVector3 op_sub([Ref] btVector3 v);
 };
 
-// interface btVector4 {
-//   void btVector4();
-//   void btVector4(float x, float y, float z, float w);
-//   float w();
-//   [Value] btVector4 absolute4();
-//   long maxAxis4();
-//   long minAxis4();
-//   long closestAxis4();
-//   [Operator="="] void op_set([Const, Ref] btVector4 v);
-//   void setValue(float x, float y, float z, float w);
+interface btVector4 {
+  void btVector4();
+  void btVector4(float x, float y, float z, float w);
+  float w();
+  [Value] btVector4 absolute4();
+  long maxAxis4();
+  long minAxis4();
+  long closestAxis4();
+  [Operator="="] void op_set([Const, Ref] btVector4 v);
+  void setValue(float x, float y, float z, float w);
 
-//   // inheritance can't be explicit because btVector4 doesn't implement btVector3::setValue(x, y, z)
-//   float length();
-//   float x();
-//   float y();
-//   float z();
-//   void setX(float x);
-//   void setY(float y);
-//   void setZ(float z);
-//   void normalize();
-//   [Value] btVector3 normalized();
-//   [Value] btVector3 rotate([Const, Ref] btVector3 wAxis, [Const] float angle);
-//   float dot([Ref] btVector3 v);
-//   float angle([Const, Ref] btVector3 v);
-//   [Value] btVector3 absolute();
-//   [Value] btVector3 cross([Const, Ref] btVector3 v);
-//   float triple([Const, Ref] btVector3 v1, [Const, Ref] btVector3 v2);
-//   long minAxis();
-//   long maxAxis();
-//   long furthestAxis();
-//   long closestAxis();
-//   void setInterpolate3([Const, Ref] btVector3 v0, [Const, Ref] btVector3 v1, float rt);
-//   // [Value] btVector3 lerp([Const, Ref] btVector3 v, [Const, Ref] float t);
-//   [Operator="*=", Ref] btVector3 op_mul(float x);
-//   [Operator="+=", Ref] btVector3 op_add([Ref] btVector3 v);
-//   [Operator="-=", Ref] btVector3 op_sub([Ref] btVector3 v);
-// };
+  // inheritance can't be explicit because btVector4 doesn't implement btVector3::setValue(x, y, z)
+  float length();
+  float x();
+  float y();
+  float z();
+  void setX(float x);
+  void setY(float y);
+  void setZ(float z);
+  void normalize();
+  [Value] btVector3 normalized();
+  [Value] btVector3 rotate([Const, Ref] btVector3 wAxis, [Const] float angle);
+  float dot([Ref] btVector3 v);
+  float angle([Const, Ref] btVector3 v);
+  [Value] btVector3 absolute();
+  [Value] btVector3 cross([Const, Ref] btVector3 v);
+  float triple([Const, Ref] btVector3 v1, [Const, Ref] btVector3 v2);
+  long minAxis();
+  long maxAxis();
+  long furthestAxis();
+  long closestAxis();
+  void setInterpolate3([Const, Ref] btVector3 v0, [Const, Ref] btVector3 v1, float rt);
+  // [Value] btVector3 lerp([Const, Ref] btVector3 v, [Const, Ref] float t);
+  [Operator="*=", Ref] btVector3 op_mul(float x);
+  [Operator="+=", Ref] btVector3 op_add([Ref] btVector3 v);
+  [Operator="-=", Ref] btVector3 op_sub([Ref] btVector3 v);
+};
 // //btVector4 implements btVector3;
 
 interface btQuadWord {
