@@ -77,7 +77,6 @@ declare module Ammo {
         minAxis4(): number;
         closestAxis4(): number;
         op_set(v: btVector4): void;
-        setValue(x: number, y: number, z: number, w: number): void;
         length(): number;
         x(): number;
         y(): number;
