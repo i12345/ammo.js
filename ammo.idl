@@ -74,9 +74,10 @@ interface btVector4 {
   long minAxis4();
   long closestAxis4();
   [Operator="="] void op_set([Const, Ref] btVector4 v);
-  void setValue(float x, float y, float z, float w);
+  
+  // cannot be included because btVector4 doesn't implement btVector3::setValue(x, y, z)
+  // void setValue(float x, float y, float z, float w);
 
-  // inheritance can't be explicit because btVector4 doesn't implement btVector3::setValue(x, y, z)
   float length();
   float x();
   float y();
