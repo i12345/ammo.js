@@ -68,6 +68,40 @@ declare module Ammo {
         op_add(v: btVector3): btVector3;
         op_sub(v: btVector3): btVector3;
     }
+    class btVector4 extends btVector3 {
+        constructor();
+        constructor(x: number, y: number, z: number, w: number);
+        w(): number;
+        absolute4(): btVector4;
+        maxAxis4(): number;
+        minAxis4(): number;
+        closestAxis4(): number;
+        op_set(v: btVector4): void;
+        setValue(x: number, y: number, z: number, w: number): void;
+        length(): number;
+        x(): number;
+        y(): number;
+        z(): number;
+        setX(x: number): void;
+        setY(y: number): void;
+        setZ(z: number): void;
+        normalize(): void;
+        normalized(): btVector3;
+        rotate(wAxis: btVector3, angle: number): btVector3;
+        dot(v: btVector3): number;
+        angle(v: btVector3): number;
+        absolute(): btVector3;
+        cross(v: btVector3): btVector3;
+        triple(v1: btVector3, v2: btVector3): number;
+        minAxis(): number;
+        maxAxis(): number;
+        furthestAxis(): number;
+        closestAxis(): number;
+        setInterpolate3(v0: btVector3, v1: btVector3, rt: number): void;
+        op_mul(x: number): btVector3;
+        op_add(v: btVector3): btVector3;
+        op_sub(v: btVector3): btVector3;
+    }
     class btQuadWord {
         x(): number;
         y(): number;
